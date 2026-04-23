@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Xử lý lỗi DLL</title>
+
+<style>
+body {
+    background: #020617;
+    color: #e2e8f0;
+    font-family: Consolas, monospace;
+    max-width: 900px;
+    margin: auto;
+    padding: 40px;
+}
+
+h1, h2, h3, h4 {
+    color: #22c55e;
+}
+
+a {
+    color: #38bdf8;
+}
+
+nav {
+    background: #0f172a;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav a:hover {
+    color: #22c55e;
+}
+
+img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+code {
+    display: block;
+    background: #020617;
+    padding: 10px;
+    border-left: 3px solid #22c55e;
+    margin: 10px 0;
+    white-space: pre-wrap;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <a href="../index.html">Home</a>
+    <a href="../blog.html">Blog</a>
+    <a href="../projects.html" style="color:#22c55e;">Projects</a>
+    <a href="../about.html">About</a>
+</nav>
+
+<h1>🛠️ Xử lý lỗi hỏng file accessibilitycpl.dll, ieframe.dll, msvcrt.dll</h1>
+
+<h3>
+Trước đây mình có viết một bài hướng dẫn về cách fix về tình trạng msvcrt.dll, 
+tuy nhiên sau vài lần điều tra thì mình thấy bài trước đó mình cảm thấy cách viết còn sơ sài 
+nên mình sẽ tinh gọn lại trên website này.
+</h3>
+
+<h3>
+Lần gần nhất mình may mắn phát hiện được một vài máy POS base Windows OS bán hàng 
+(ở công việc mình đang làm cho một công ty Retail) bị các lỗi mà một số chức năng bình thường không sử dụng được.
+</h3>
+
+<h3>❗ Triệu chứng</h3>
+
+<ul>
+<li>Khi mở một chương trình, bạn gặp thông báo lỗi như:</li>
+</ul>
+
+<code>
+"The code execution cannot proceed because msvcrt.dll was not found. Reinstalling the program may fix this problem."
+"The application was unable to start correctly (0xc0000005). Click OK to close the application."
+</code>
+
+<img src="../images/image1.png">
+
+<ul>
+<li>Không mở được một số Windows Applications (Control Panel, Ease of Access, IE components…)</li>
+<li>Một số chức năng hệ thống bị treo / crash</li>
+<li>Không thể boot ISO để repair</li>
+</ul>
+
+<h2>⚠️ Tình trạng trước khi phân tích sâu</h2>
+
+<p>
+Thật ra khi gặp phải sự cố này lần đầu trên các máy, mình cảm thấy hoang mang và hi vọng rằng 
+các công cụ AI có thể tìm cách để xử lý. Mình đã thử làm các bước cơ bản theo hướng dẫn trên cộng đồng Microsoft, 
+tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó là nó luôn đề cập về CBS.log
+</p>
+
+<p>Trước khi đi vào kiểm tra CBS.log, đã thử các phương pháp truyền thống nhưng <b>không khả thi</b>:</p>
+
+<ul>
+<li>❌ sfc /scannow → “Windows resource protection found corrupt files but was unable to fix some of them”</li>
+<li>❌ DISM /Online /Cleanup-Image /RestoreHealth → không resolve triệt để</li>
+<li>❌ Repair bằng ISO → không thực hiện được (không boot được ISO)</li>
+</ul>
+
+<p>👉 Vì vậy mình quyết định kiểm tra file này đang chỉ điều gì:</p>
+
+<p><b>Phân tích log chi tiết (CBS.log) để xác định file hệ thống bị lỗi cụ thể</b></p>
+
+<img src="../images/image2.jpg">
+
+<h2>🔍 Phân tích log (CBS.log)</h2>
+
+<h3>Từ khóa cần tìm:</h3>
+
+<ul>
+<li>Expected</li>
+<li>Cannot Repair</li>
+</ul>
+
+<p>Theo những gì được nêu thì:</p>
+
+<ul>
+<li><b>Expected</b>: hash/version đúng mà hệ thống mong đợi</li>
+<li><b>Actual</b>: file hiện tại bị lệch hoặc corrupt</li>
+<li><b>Cannot Repair</b>: Windows không thể tự sửa file đó</li>
+</ul>
+
+<img src="../images/image3.png">
+<img src="../images/image4.png">
+<img src="../images/image5.png">
+
+<h2>🔍 Nguyên nhân có thể xảy đến vì:</h2>
+
+<ul>
+<li>File hệ thống (.dll) bị:
+    <ul>
+        <li>corrupt (hỏng)</li>
+        <li>missing (thiếu)</li>
+        <li>mismatch version</li>
+        <li>Hoặc có thể ảnh hưởng khi sử dụng một phần mềm bị gán mã độc</li>
+    </ul>
+</li>
+</ul>
+
+<p>
+Ví dụ với case trên, ta xác định được một vài file dll đang báo lỗi: 
+accessibilitycpl.dll, ieframe.dll, msvcrt.dll.
+</p>
+
+<p>
+Mình thử tìm nguồn để tải các file này từ: 
+<a href="http://www.dll-files.com">www.dll-files.com</a>. 
+Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
+</p>
+
+<code>
+copy accessibilitycpl.dll C:\Windows\System32\
+Access is denied
+</code>
+
+<h2>Vì sao bị Access is denied?</h2>
+
+<ul>
+<li>Các file DLL thuộc hệ thống</li>
+<li>Chủ sở hữu là TrustedInstaller</li>
+<li>Admin cũng không ghi đè được</li>
+</ul>
+
+<h2>🔧 Cách xử lý</h2>
+
+<h3>Bước 1: Take ownership</h3>
+<code>takeown /f C:\Windows\System32\<dll></code>
+
+<h3>Bước 2: Cấp quyền</h3>
+<code>icacls C:\Windows\System32\<dll> /grant administrators:F</code>
+
+<h3>Bước 3: Thay thế file</h3>
+<code>copy <dll> C:\Windows\System32\</code>
+
+<h3>Bước 4: Verify</h3>
+<code>
+sfc /scannow
+DISM /Online /Cleanup-Image /RestoreHealth
+gpupdate /force
+shutdown /r /t 5
+</code>
+
+<h3>Restore quyền hệ thống</h3>
+<code>icacls C:\Windows\System32\<dll> /setowner "NT SERVICE\TrustedInstaller"</code>
+
+<h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
+
+<img src="../images/image6.png">
+<img src="../images/image7.png">
+
+<h1>Góc nhìn của mình</h1>
+
+<p>
+Trong trường hợp này, các phương pháp truyền thống không mang lại hiệu quả. 
+Do đó, cần phân tích CBS.log để xác định chính xác file lỗi.
+</p>
+
+<p>
+Sau khi xác định được, áp dụng phương pháp take ownership, cấp quyền và thay thế DLL.
+</p>
+
+<p>
+Tuy nhiên cần lưu ý: phương pháp này chỉ nên dùng khi không còn cách khác, 
+và mục tiêu là khôi phục tạm thời để backup dữ liệu.
+</p>
+
+<br>
+<a href="../projects.html">← Quay lại</a>
+
+</body>
+</html>
