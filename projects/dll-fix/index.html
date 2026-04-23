@@ -89,7 +89,7 @@ Lần gần nhất mình may mắn phát hiện được một vài máy POS bas
 "The application was unable to start correctly (0xc0000005). Click OK to close the application."
 </code>
 
-<img src="../images/image1.png">
+<img src="images/image1.png">
 
 <ul>
 <li>Không mở được một số Windows Applications (Control Panel, Ease of Access, IE components…)</li>
@@ -117,7 +117,7 @@ tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó l
 
 <p><b>Phân tích log chi tiết (CBS.log) để xác định file hệ thống bị lỗi cụ thể</b></p>
 
-<img src="../images/image2.jpg">
+<img src="images/image2.jpg">
 
 <h2>🔍 Phân tích log (CBS.log)</h2>
 
@@ -136,9 +136,9 @@ tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó l
 <li><b>Cannot Repair</b>: Windows không thể tự sửa file đó</li>
 </ul>
 
-<img src="../images/image3.png">
-<img src="../images/image4.png">
-<img src="../images/image5.png">
+<img src="images/image3.png">
+<img src="images/image4.png">
+<img src="images/image5.png">
 
 <h2>🔍 Nguyên nhân có thể xảy đến vì:</h2>
 
@@ -165,7 +165,7 @@ Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện
 </p>
 
 <code>
-copy accessibilitycpl.dll C:\Windows\System32\
+copy $dll-filenames$ C:\Windows\System32\
 Access is denied
 </code>
 
@@ -180,13 +180,13 @@ Access is denied
 <h2>🔧 Cách xử lý</h2>
 
 <h3>Bước 1: Take ownership</h3>
-<code>takeown /f C:\Windows\System32\<dll></code>
+<code>takeown /f C:\Windows\System32\$dll-filenames$<dll></code>
 
 <h3>Bước 2: Cấp quyền</h3>
-<code>icacls C:\Windows\System32\<dll> /grant administrators:F</code>
+<code>icacls C:\Windows\System32\$dll-filenames$<dll> /grant administrators:F</code>
 
 <h3>Bước 3: Thay thế file</h3>
-<code>copy <dll> C:\Windows\System32\</code>
+<code>copy <dll> C:\Windows\System32\$dll-filenames$</code>
 
 <h3>Bước 4: Verify</h3>
 <code>
@@ -197,12 +197,12 @@ shutdown /r /t 5
 </code>
 
 <h3>Restore quyền hệ thống</h3>
-<code>icacls C:\Windows\System32\<dll> /setowner "NT SERVICE\TrustedInstaller"</code>
+<code>icacls C:\Windows\System32\$dll-filenames$<dll> /setowner "NT SERVICE\TrustedInstaller"</code>
 
 <h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
 
-<img src="../images/image6.png">
-<img src="../images/image7.png">
+<img src="images/image6.png">
+<img src="images/image7.png">
 
 <h1>Góc nhìn của mình</h1>
 
