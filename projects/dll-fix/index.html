@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <title>Xử lý lỗi DLL</title>
 
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
 <style>
 body {
     background: #020617;
@@ -45,6 +49,7 @@ img {
     margin: 10px 0;
 }
 
+/* Code thường */
 pre {
     background: #020617;
     padding: 15px;
@@ -54,8 +59,31 @@ pre {
 }
 
 code {
-    color: #22c55e;
     font-family: Consolas, monospace;
+}
+
+/* Script block riêng */
+.code-script {
+    position: relative;
+    margin-top: 20px;
+}
+
+.code-script pre {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+}
+
+.code-script button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 8px;
+    cursor: pointer;
 }
 </style>
 </head>
@@ -73,168 +101,109 @@ code {
 
 <h3>
 Trước đây mình có viết một bài hướng dẫn về cách fix về tình trạng msvcrt.dll, 
-tuy nhiên sau vài lần điều tra thì mình thấy bài trước đó mình cảm thấy cách viết còn sơ sài 
+tuy nhiên sau vài lần điều tra thì mình thấy bài trước đó còn sơ sài 
 nên mình sẽ tinh gọn lại trên website này.
 </h3>
 
 <h3>
-Lần gần nhất mình may mắn phát hiện được một vài máy POS base Windows OS bán hàng 
-(ở công việc mình đang làm cho một công ty Retail) bị các lỗi mà một số chức năng bình thường không sử dụng được.
+Lần gần nhất mình phát hiện một số máy POS Windows bị lỗi khiến nhiều chức năng không sử dụng được.
 </h3>
 
 <h3>❗ Triệu chứng</h3>
 
 <ul>
-<li>Khi mở một chương trình, bạn gặp thông báo lỗi như:</li>
+<li>Khi mở chương trình gặp lỗi:</li>
 </ul>
 
 <pre><code>
-"The code execution cannot proceed because msvcrt.dll was not found. Reinstalling the program may fix this problem."
-"The application was unable to start correctly (0xc0000005). Click OK to close the application."
+"The code execution cannot proceed because msvcrt.dll was not found."
+"The application was unable to start correctly (0xc0000005)."
 </code></pre>
 
 <img src="images/image1.png">
 
 <ul>
-<li>Không mở được một số Windows Applications (Control Panel, Ease of Access, IE components…)</li>
-<li>Một số chức năng hệ thống bị treo / crash</li>
-<li>Không thể boot ISO để repair</li>
+<li>Không mở được Control Panel, Ease of Access…</li>
+<li>Hệ thống bị crash</li>
+<li>Không boot được ISO repair</li>
 </ul>
 
-<h2>⚠️ Tình trạng trước khi phân tích sâu</h2>
+<h2>⚠️ Trạng thái ban đầu</h2>
 
 <p>
-Thật ra khi gặp phải sự cố này lần đầu trên các máy, mình cảm thấy hoang mang và hi vọng rằng 
-các công cụ AI có thể tìm cách để xử lý. Mình đã thử làm các bước cơ bản theo hướng dẫn trên cộng đồng Microsoft, 
-tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó là nó luôn đề cập về CBS.log
+Đã thử các phương pháp truyền thống nhưng không hiệu quả:
 </p>
 
-<p>Trước khi đi vào kiểm tra CBS.log, đã thử các phương pháp truyền thống nhưng <b>không khả thi</b>:</p>
-
 <ul>
-<li>❌ sfc /scannow → “Windows resource protection found corrupt files but was unable to fix some of them”</li>
-<li>❌ DISM /Online /Cleanup-Image /RestoreHealth → không resolve triệt để</li>
-<li>❌ Repair bằng ISO → không thực hiện được (không boot được ISO)</li>
+<li>❌ sfc /scannow</li>
+<li>❌ DISM /RestoreHealth</li>
+<li>❌ Repair bằng ISO</li>
 </ul>
 
-<p>👉 Vì vậy mình quyết định kiểm tra file này đang chỉ điều gì:</p>
-
-<p><b>Phân tích log chi tiết (CBS.log) để xác định file hệ thống bị lỗi cụ thể</b></p>
+<p><b>→ Quyết định phân tích CBS.log</b></p>
 
 <img src="images/image2.jpg">
 
-<h2>🔍 Phân tích log (CBS.log)</h2>
-
-<h3>Từ khóa cần tìm:</h3>
+<h2>🔍 Phân tích CBS.log</h2>
 
 <ul>
 <li>Expected</li>
 <li>Cannot Repair</li>
 </ul>
 
-<p>Theo những gì được nêu thì:</p>
-
-<ul>
-<li><b>Expected</b>: hash/version đúng mà hệ thống mong đợi</li>
-<li><b>Actual</b>: file hiện tại bị lệch hoặc corrupt</li>
-<li><b>Cannot Repair</b>: Windows không thể tự sửa file đó</li>
-</ul>
-
 <img src="images/image3.png">
 <img src="images/image4.png">
 <img src="images/image5.png">
 
-<h2>🔍 Nguyên nhân có thể xảy đến vì:</h2>
+<h2>🔍 Nguyên nhân</h2>
 
 <ul>
-<li>File hệ thống (.dll) bị:
-    <ul>
-        <li>corrupt (hỏng)</li>
-        <li>missing (thiếu)</li>
-        <li>mismatch version</li>
-        <li>Hoặc có thể ảnh hưởng khi sử dụng một phần mềm bị gán mã độc</li>
-    </ul>
-</li>
-</ul>
-
-<p>
-Ví dụ với case trên, ta xác định được một vài file dll đang báo lỗi: 
-accessibilitycpl.dll, ieframe.dll, msvcrt.dll.
-</p>
-
-<p>
-Mình thử tìm nguồn để tải các file này từ: 
-<a href="http://www.dll-files.com">www.dll-files.com</a>. 
-Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
-</p>
-
-<pre><code>copy $dll-filenames$ C:\Windows\System32\
-Access is denied
-</code></pre>
-
-<h2>Vì sao bị Access is denied?</h2>
-
-<ul>
-<li>Các file DLL thuộc hệ thống</li>
-<li>Chủ sở hữu là TrustedInstaller</li>
-<li>Admin cũng không ghi đè được</li>
+<li>DLL bị corrupt / missing / mismatch</li>
+<li>Có thể bị ảnh hưởng bởi malware</li>
 </ul>
 
 <h2>🔧 Cách xử lý</h2>
 
 <h3>Bước 1: Take ownership</h3>
-<pre><code>takeown /f C:\Windows\System32\$dll-filenames$<dll></code></pre>
+<pre><code>takeown /f C:\Windows\System32\$dll-filenames$&lt;dll&gt;</code></pre>
 
 <h3>Bước 2: Cấp quyền</h3>
-<pre><code>icacls C:\Windows\System32\$dll-filenames$<dll> /grant administrators:F</code></pre>
+<pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /grant administrators:F</code></pre>
 
-<h3>Bước 3: Thay thế file</h3>
-<pre><code>copy <dll> C:\Windows\System32\$dll-filenames$</code></pre>
+<h3>Bước 3: Replace file</h3>
+<pre><code>copy &lt;dll&gt; C:\Windows\System32\$dll-filenames$</code></pre>
 
 <h3>Bước 4: Verify</h3>
-<pre><code>sfc /scannow
+<pre><code>
+sfc /scannow
 DISM /Online /Cleanup-Image /RestoreHealth
 gpupdate /force
 shutdown /r /t 5
 </code></pre>
 
-<h3>Restore quyền hệ thống</h3>
-<pre><code>icacls C:\Windows\System32\$dll-filenames$<dll> /setowner "NT SERVICE\TrustedInstaller"</code></pre>
-
-<h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
+<h3>Restore quyền</h3>
+<pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /setowner "NT SERVICE\TrustedInstaller"</code></pre>
 
 <img src="images/image6.png">
 <img src="images/image7.png">
 
-<h1>Góc nhìn của mình</h1>
+<h1>📌 Góc nhìn</h1>
 
 <p>
-Trong trường hợp này, các phương pháp truyền thống không mang lại hiệu quả. 
-Do đó, cần phân tích CBS.log để xác định chính xác file lỗi.
+Cần phân tích CBS.log để xác định chính xác file lỗi thay vì phụ thuộc vào tool tự động.
 </p>
 
-<p>
-Sau khi xác định được, áp dụng phương pháp take ownership, cấp quyền và thay thế DLL.
-</p>
-
-<p>
-Tuy nhiên cần lưu ý: phương pháp này chỉ nên dùng khi không còn cách khác, 
-và mục tiêu là khôi phục tạm thời để backup dữ liệu.
-</p>
-
-<br>
 <hr>
 
 <h2>📜 PowerShell Script: Phân tích CBS.log</h2>
 
 <p>
-Script này giúp parse file CBS.log để xác định các DLL bị lỗi hoặc không thể repair,
-phân loại trạng thái và hiển thị summary nhanh.
+Script giúp phát hiện DLL lỗi và hiển thị summary.
 </p>
 
 <div class="code-script">
-    <button onclick="copyCode(this)">Copy</button>
-    <pre><code class="language-powershell">
+<button onclick="copyCode(this)">Copy</button>
+<pre><code class="language-powershell">
 $logPath = "C:\Windows\Logs\CBS\CBS.log"
 if (!(Test-Path $logPath)) {
     Write-Host "Log not found!" -ForegroundColor Red
@@ -305,9 +274,24 @@ if (-not $hasFailed) {
 else {
     Write-Host "`nSYSTEM STATUS: DLL FILES DETECTED" -ForegroundColor Red
 }
-    </code></pre>
+</code></pre>
 </div>
+
+<br>
 <a href="../projects.html">← Quay lại</a>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    hljs.highlightAll();
+});
+
+function copyCode(button) {
+    const code = button.nextElementSibling.innerText;
+    navigator.clipboard.writeText(code);
+    button.innerText = "Copied!";
+    setTimeout(() => button.innerText = "Copy", 2000);
+}
+</script>
 
 </body>
 </html>
