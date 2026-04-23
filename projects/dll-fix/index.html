@@ -196,7 +196,7 @@ Mình thử tìm nguồn để tải các file này từ:
 Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
 </p>
 
-<pre><code>copy $dll-filenames$ C:\Windows\System32\
+<pre><code>copy &lt;dll-filenames&gt; C:\Windows\System32\
 Access is denied
 </code></pre>
 
@@ -211,13 +211,13 @@ Access is denied
 <h2>🔧 Cách xử lý</h2>
 
 <h3>Bước 1: Take ownership</h3>
-<pre><code>takeown /f C:\Windows\System32\$dll-filenames$&lt;dll&gt;</code></pre>
+<pre><code>takeown /f C:\Windows\System32\&lt;dll-filenames&gt;;</code></pre>
 
 <h3>Bước 2: Cấp quyền</h3>
-<pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /grant administrators:F</code></pre>
+<pre><code>icacls C:\Windows\System32\&lt;dll-filenames&gt; /grant administrators:F</code></pre>
 
 <h3>Bước 3: Thay thế file</h3>
-<pre><code>copy &lt;dll&gt; C:\Windows\System32\$dll-filenames$</code></pre>
+<pre><code>copy &lt;dll-filenames&gt; C:\Windows\System32\&lt;dll-filenames&gt;</code></pre>
 
 <h3>Bước 4: Verify</h3>
 <pre><code>sfc /scannow
@@ -227,20 +227,28 @@ shutdown /r /t 5
 </code></pre>
 
 <h3>Restore quyền hệ thống</h3>
-<pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /setowner "NT SERVICE\TrustedInstaller"</code></pre>
+<pre><code>icacls C:\Windows\System32\&lt;dll-filenames&gt; /setowner "NT SERVICE\TrustedInstaller"</code></pre>
 
 <h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
 
 <img src="images/image6.png">
 <img src="images/image7.png">
 
-<h1>📌 Góc nhìn</h1>
+<h1>Góc nhìn của mình</h1>
 
 <p>
-Cần phân tích CBS.log để xác định chính xác file lỗi thay vì phụ thuộc vào tool tự động.
+Trong trường hợp này, các phương pháp truyền thống không mang lại hiệu quả. 
+Do đó, cần phân tích CBS.log để xác định chính xác file lỗi.
 </p>
 
-<hr>
+<p>
+Sau khi xác định được, áp dụng phương pháp take ownership, cấp quyền và thay thế DLL.
+</p>
+
+<p>
+Tuy nhiên cần lưu ý: phương pháp này chỉ nên dùng khi không còn cách khác, 
+và mục tiêu là khôi phục tạm thời để backup dữ liệu.
+</p>
 
 <h2>📜 PowerShell Script: Phân tích CBS.log</h2>
 
