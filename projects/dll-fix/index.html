@@ -97,7 +97,7 @@ code {
     <a href="../about.html">About</a>
 </nav>
 
-<h1>🛠️ Xử lý lỗi hỏng file accessibilitycpl.dll, ieframe.dll, msvcrt.dll</h1>
+<h1>🛠️ Xử lý lỗi hỏng file .dll</h1>
 
 <h3>
 Trước đây mình có viết một bài hướng dẫn về cách fix về tình trạng msvcrt.dll, 
@@ -106,51 +106,68 @@ nên mình sẽ tinh gọn lại trên website này.
 </h3>
 
 <h3>
-Lần gần nhất mình phát hiện một số máy POS Windows bị lỗi khiến nhiều chức năng không sử dụng được.
+Lần gần nhất mình may mắn phát hiện được một vài máy POS base Windows OS bán hàng 
+(ở công việc mình đang làm cho một công ty Retail) bị các lỗi mà một số chức năng bình thường không sử dụng được.
 </h3>
 
 <h3>❗ Triệu chứng</h3>
 
 <ul>
-<li>Khi mở chương trình gặp lỗi:</li>
+<li>Khi mở một chương trình, bạn gặp thông báo lỗi như:</li>
 </ul>
 
 <pre><code>
-"The code execution cannot proceed because msvcrt.dll was not found."
-"The application was unable to start correctly (0xc0000005)."
+"The code execution cannot proceed because msvcrt.dll was not found. Reinstalling the program may fix this problem."
+"The application was unable to start correctly (0xc0000005). Click OK to close the application."
 </code></pre>
 
 <img src="images/image1.png">
 
 <ul>
-<li>Không mở được Control Panel, Ease of Access…</li>
-<li>Hệ thống bị crash</li>
-<li>Không boot được ISO repair</li>
+<li>Không mở được một số Windows Applications (Control Panel, Ease of Access, IE components…)</li>
+<li>Một số chức năng hệ thống bị treo / crash</li>
+<li>Không thể boot ISO để repair</li>
 </ul>
 
-<h2>⚠️ Trạng thái ban đầu</h2>
+<h2>⚠️ Tình trạng trước khi phân tích sâu</h2>
 
 <p>
-Đã thử các phương pháp truyền thống nhưng không hiệu quả:
+Thật ra khi gặp phải sự cố này lần đầu trên các máy, mình cảm thấy hoang mang và hi vọng rằng 
+các công cụ AI có thể tìm cách để xử lý. Mình đã thử làm các bước cơ bản theo hướng dẫn trên cộng đồng Microsoft, 
+tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó là nó luôn đề cập về CBS.log
 </p>
 
+<p>Trước khi đi vào kiểm tra CBS.log, đã thử các phương pháp truyền thống nhưng <b>không khả thi</b>:</p>
+    
 <ul>
-<li>❌ sfc /scannow</li>
-<li>❌ DISM /RestoreHealth</li>
-<li>❌ Repair bằng ISO</li>
+<li>❌ sfc /scannow → “Windows resource protection found corrupt files but was unable to fix some of them”</li>
+<li>❌ DISM /Online /Cleanup-Image /RestoreHealth → không resolve triệt để</li>
+<li>❌ Repair bằng ISO → không thực hiện được (không boot được ISO)</li>
 </ul>
 
-<p><b>→ Quyết định phân tích CBS.log</b></p>
+<p><b>👉 Vì vậy mình quyết định kiểm tra file này đang chỉ điều gì:</b></p>
 
+<p><b>Phân tích log chi tiết (CBS.log) để xác định file hệ thống bị lỗi cụ thể</b></p>
+    
 <img src="images/image2.jpg">
 
 <h2>🔍 Phân tích CBS.log</h2>
+
+<h3>Từ khóa cần tìm:</h3>
 
 <ul>
 <li>Expected</li>
 <li>Cannot Repair</li>
 </ul>
 
+<p>Theo những gì được nêu thì:</p>
+
+<ul>
+<li><b>Expected</b>: hash/version đúng mà hệ thống mong đợi</li>
+<li><b>Actual</b>: file hiện tại bị lệch hoặc corrupt</li>
+<li><b>Cannot Repair</b>: Windows không thể tự sửa file đó</li>
+</ul>
+    
 <img src="images/image3.png">
 <img src="images/image4.png">
 <img src="images/image5.png">
@@ -158,8 +175,37 @@ Lần gần nhất mình phát hiện một số máy POS Windows bị lỗi khi
 <h2>🔍 Nguyên nhân</h2>
 
 <ul>
-<li>DLL bị corrupt / missing / mismatch</li>
-<li>Có thể bị ảnh hưởng bởi malware</li>
+<li>File hệ thống (.dll) bị:
+    <ul>
+        <li>corrupt (hỏng)</li>
+        <li>missing (thiếu)</li>
+        <li>mismatch version</li>
+        <li>Hoặc có thể ảnh hưởng khi sử dụng một phần mềm bị gán mã độc</li>
+    </ul>
+</li>
+</ul>
+
+<p>
+Ví dụ với case trên, ta xác định được một vài file dll đang báo lỗi: 
+accessibilitycpl.dll, ieframe.dll, msvcrt.dll.
+</p>
+
+<p>
+Mình thử tìm nguồn để tải các file này từ: 
+<a href="http://www.dll-files.com">www.dll-files.com</a>. 
+Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
+</p>
+
+<pre><code>copy $dll-filenames$ C:\Windows\System32\
+Access is denied
+</code></pre>
+
+<h2>Vì sao bị Access is denied?</h2>
+
+<ul>
+<li>Các file DLL thuộc hệ thống</li>
+<li>Chủ sở hữu là TrustedInstaller</li>
+<li>Admin cũng không ghi đè được</li>
 </ul>
 
 <h2>🔧 Cách xử lý</h2>
@@ -170,19 +216,20 @@ Lần gần nhất mình phát hiện một số máy POS Windows bị lỗi khi
 <h3>Bước 2: Cấp quyền</h3>
 <pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /grant administrators:F</code></pre>
 
-<h3>Bước 3: Replace file</h3>
+<h3>Bước 3: Thay thế file</h3>
 <pre><code>copy &lt;dll&gt; C:\Windows\System32\$dll-filenames$</code></pre>
 
 <h3>Bước 4: Verify</h3>
-<pre><code>
-sfc /scannow
+<pre><code>sfc /scannow
 DISM /Online /Cleanup-Image /RestoreHealth
 gpupdate /force
 shutdown /r /t 5
 </code></pre>
 
-<h3>Restore quyền</h3>
+<h3>Restore quyền hệ thống</h3>
 <pre><code>icacls C:\Windows\System32\$dll-filenames$&lt;dll&gt; /setowner "NT SERVICE\TrustedInstaller"</code></pre>
+
+<h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
 
 <img src="images/image6.png">
 <img src="images/image7.png">
