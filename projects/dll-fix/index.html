@@ -223,6 +223,90 @@ và mục tiêu là khôi phục tạm thời để backup dữ liệu.
 </p>
 
 <br>
+<hr>
+
+<h2>📜 PowerShell Script: Phân tích CBS.log</h2>
+
+<p>
+Script này giúp parse file CBS.log để xác định các DLL bị lỗi hoặc không thể repair,
+phân loại trạng thái và hiển thị summary nhanh.
+</p>
+
+<div class="code-script">
+    <button onclick="copyCode(this)">Copy</button>
+    <pre><code class="language-powershell">
+$logPath = "C:\Windows\Logs\CBS\CBS.log"
+if (!(Test-Path $logPath)) {
+    Write-Host "Log not found!" -ForegroundColor Red
+    exit
+}
+
+$lines = Get-Content $logPath -ErrorAction SilentlyContinue
+$pattern = "(?:\\\?\?\\)?([A-Z]:\\[^\s]+?\.(dll|mui|exe))|['""]([^'""]+\.(dll|mui|exe))['""]"
+$errors = $lines | Where-Object {
+    $_ -match "Repairing corrupted file" -or $_ -match "Cannot repair"
+}
+
+$rawResult = foreach ($line in $errors) {
+    if ($line -match $pattern) {
+
+        $file = if ($matches[1]) { $matches[1] } else { $matches[2] }
+
+        [PSCustomObject]@{
+            Time   = ($line -split ",")[0]
+            File   = $file
+            Status = if ($line -match "Cannot repair") { "Failed" } else { "Repaired" }
+            Detail = $line
+        }
+    }
+}
+
+foreach ($item in $rawResult) {
+    if ($item.Status -eq "Failed") {
+        Write-Host "$($item.Time) | $($item.File) | FAILED" -ForegroundColor Red
+        Write-Host "  $($item.Detail)" -ForegroundColor Magenta
+    }
+    else {
+        Write-Host "$($item.Time) | $($item.File) | Repaired" -ForegroundColor Green
+    }
+}
+
+$summary = $rawResult | Group-Object File | ForEach-Object {
+
+    $failedItems = $_.Group | Where-Object { $_.Status -eq "Failed" }
+
+    [PSCustomObject]@{
+        File        = $_.Name
+        Status      = if ($failedItems) { "Failed" } else { "Repaired" }
+        Count       = $_.Count
+        FailedLines = if ($failedItems) {
+            ($failedItems.Detail -join "`n")
+        } else {
+            ""
+        }
+    }
+}
+
+Write-Host "`n=== SUMMARY ===" -ForegroundColor Yellow
+
+foreach ($item in $summary) {
+    if ($item.Status -eq "Failed") {
+        Write-Host "$($item.File) | FAILED ($($item.Count))" -ForegroundColor Red
+        Write-Host "  --- Failed Details ---" -ForegroundColor Yellow
+        Write-Host $item.FailedLines -ForegroundColor Yellow
+    }
+}
+
+$hasFailed = $summary | Where-Object { $_.Status -eq "Failed" }
+
+if (-not $hasFailed) {
+    Write-Host "`nSYSTEM STATUS: ALL CLEAN" -ForegroundColor Green
+}
+else {
+    Write-Host "`nSYSTEM STATUS: DLL FILES DETECTED" -ForegroundColor Red
+}
+    </code></pre>
+</div>
 <a href="../projects.html">← Quay lại</a>
 
 </body>
