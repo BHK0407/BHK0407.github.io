@@ -62,29 +62,49 @@ code {
     font-family: Consolas, monospace;
 }
 
-/* Script block riêng */
 .code-script {
-    position: relative;
     margin-top: 20px;
-}
-
-.code-script pre {
-    background: #ffffff;
-    color: #0f172a;
+    border-radius: 12px;
+    overflow: hidden;
     border: 1px solid #e2e8f0;
 }
 
-.code-script button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
+.code-header {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 8px 12px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.code-header button {
     background: #6366f1;
-    color: white;
     border: none;
-    padding: 5px 10px;
-    border-radius: 8px;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
     cursor: pointer;
 }
+
+.code-script pre {
+    margin: 0;
+    max-height: 400px;
+    overflow: auto;
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.code-script pre::-webkit-scrollbar {
+    width: 8px;
+}
+
+.code-script pre::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 10px;
+}
+
 </style>
 </head>
 
@@ -211,7 +231,7 @@ Access is denied
 <h2>🔧 Cách xử lý</h2>
 
 <h3>Bước 1: Take ownership</h3>
-<pre><code>takeown /f C:\Windows\System32\&lt;dll-filenames&gt;;</code></pre>
+<pre><code>takeown /f C:\Windows\System32\&lt;dll-filenames&gt;</code></pre>
 
 <h3>Bước 2: Cấp quyền</h3>
 <pre><code>icacls C:\Windows\System32\&lt;dll-filenames&gt; /grant administrators:F</code></pre>
@@ -257,8 +277,13 @@ Script giúp phát hiện DLL lỗi và hiển thị summary.
 </p>
 
 <div class="code-script">
-<button onclick="copyCode(this)">Copy</button>
-<pre><code class="language-powershell">
+
+    <div class="code-header">
+        <span>PowerShell</span>
+        <button onclick="copyCode(this)">Copy</button>
+    </div>
+
+    <pre><code class="language-powershell">
 $logPath = "C:\Windows\Logs\CBS\CBS.log"
 if (!(Test-Path $logPath)) {
     Write-Host "Log not found!" -ForegroundColor Red
@@ -329,23 +354,24 @@ if (-not $hasFailed) {
 else {
     Write-Host "`nSYSTEM STATUS: DLL FILES DETECTED" -ForegroundColor Red
 }
-</code></pre>
+    </code></pre>
 </div>
 
 <br>
 <a href="../projects.html">← Quay lại</a>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    hljs.highlightAll();
-});
-
 function copyCode(button) {
-    const code = button.nextElementSibling.innerText;
+    const code = button.parentElement.nextElementSibling.innerText;
     navigator.clipboard.writeText(code);
+
     button.innerText = "Copied!";
     setTimeout(() => button.innerText = "Copy", 2000);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    hljs.highlightAll();
+});
 </script>
 
 </body>
