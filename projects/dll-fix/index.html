@@ -168,8 +168,7 @@ Mình thử tìm nguồn để tải các file này từ:
 Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
 </p>
 
-<pre><code>
-copy $dll-filenames$ C:\Windows\System32\
+<pre><code>copy $dll-filenames$ C:\Windows\System32\
 Access is denied
 </code></pre>
 
@@ -193,8 +192,7 @@ Access is denied
 <pre><code>copy <dll> C:\Windows\System32\$dll-filenames$</code></pre>
 
 <h3>Bước 4: Verify</h3>
-<pre><code>
-sfc /scannow
+<pre><code>sfc /scannow
 DISM /Online /Cleanup-Image /RestoreHealth
 gpupdate /force
 shutdown /r /t 5
