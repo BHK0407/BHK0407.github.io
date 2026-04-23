@@ -45,13 +45,17 @@ img {
     margin: 10px 0;
 }
 
-code {
-    display: block;
+pre {
     background: #020617;
-    padding: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    overflow-x: auto;
     border-left: 3px solid #22c55e;
-    margin: 10px 0;
-    white-space: pre-wrap;
+}
+
+code {
+    color: #22c55e;
+    font-family: Consolas, monospace;
 }
 </style>
 </head>
@@ -84,10 +88,10 @@ Lần gần nhất mình may mắn phát hiện được một vài máy POS bas
 <li>Khi mở một chương trình, bạn gặp thông báo lỗi như:</li>
 </ul>
 
-<code>
+<pre><code>
 "The code execution cannot proceed because msvcrt.dll was not found. Reinstalling the program may fix this problem."
 "The application was unable to start correctly (0xc0000005). Click OK to close the application."
-</code>
+</code></pre>
 
 <img src="images/image1.png">
 
@@ -164,10 +168,10 @@ Mình thử tìm nguồn để tải các file này từ:
 Tuy nhiên sau khi tải thành công, copy file vào không thể thực hiện.
 </p>
 
-<code>
+<pre><code>
 copy $dll-filenames$ C:\Windows\System32\
 Access is denied
-</code>
+</code></pre>
 
 <h2>Vì sao bị Access is denied?</h2>
 
@@ -180,24 +184,24 @@ Access is denied
 <h2>🔧 Cách xử lý</h2>
 
 <h3>Bước 1: Take ownership</h3>
-<code>takeown /f C:\Windows\System32\$dll-filenames$<dll></code>
+<pre><code>takeown /f C:\Windows\System32\$dll-filenames$<dll></code></pre>
 
 <h3>Bước 2: Cấp quyền</h3>
-<code>icacls C:\Windows\System32\$dll-filenames$<dll> /grant administrators:F</code>
+<pre><code>icacls C:\Windows\System32\$dll-filenames$<dll> /grant administrators:F</code></pre>
 
 <h3>Bước 3: Thay thế file</h3>
-<code>copy <dll> C:\Windows\System32\$dll-filenames$</code>
+<pre><code>copy <dll> C:\Windows\System32\$dll-filenames$</code></pre>
 
 <h3>Bước 4: Verify</h3>
-<code>
+<pre><code>
 sfc /scannow
 DISM /Online /Cleanup-Image /RestoreHealth
 gpupdate /force
 shutdown /r /t 5
-</code>
+</code></pre>
 
 <h3>Restore quyền hệ thống</h3>
-<code>icacls C:\Windows\System32\$dll-filenames$<dll> /setowner "NT SERVICE\TrustedInstaller"</code>
+<pre><code>icacls C:\Windows\System32\$dll-filenames$<dll> /setowner "NT SERVICE\TrustedInstaller"</code></pre>
 
 <h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
 
