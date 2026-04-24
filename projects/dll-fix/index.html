@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<title>Xử lý lỗi DLL</title>
+<title>Blog | Xử lý lỗi DLL</title>
 
 <!-- Highlight.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
@@ -49,7 +49,6 @@ img {
     margin: 10px 0;
 }
 
-/* Code thường */
 pre {
     background: #020617;
     padding: 15px;
@@ -104,7 +103,6 @@ code {
     background: #94a3b8;
     border-radius: 10px;
 }
-
 </style>
 </head>
 
@@ -112,8 +110,8 @@ code {
 
 <nav>
     <a href="../index.html">Home</a>
-    <a href="../blog.html">Blog</a>
-    <a href="../projects.html" style="color:#22c55e;">Projects</a>
+    <a href="../blog.html" style="color:#22c55e;">Blog</a>
+    <a href="../projects.html">Projects</a>
     <a href="../about.html">About</a>
 </nav>
 
@@ -141,7 +139,7 @@ Lần gần nhất mình may mắn phát hiện được một vài máy POS bas
 "The application was unable to start correctly (0xc0000005). Click OK to close the application."
 </code></pre>
 
-<img src="images/image1.png">
+<img src="dll-fix/image1.png">
 
 <ul>
 <li>Không mở được một số Windows Applications (Control Panel, Ease of Access, IE components…)</li>
@@ -158,7 +156,7 @@ tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó l
 </p>
 
 <p>Trước khi đi vào kiểm tra CBS.log, đã thử các phương pháp truyền thống nhưng <b>không khả thi</b>:</p>
-    
+
 <ul>
 <li>❌ sfc /scannow → “Windows resource protection found corrupt files but was unable to fix some of them”</li>
 <li>❌ DISM /Online /Cleanup-Image /RestoreHealth → không resolve triệt để</li>
@@ -168,8 +166,8 @@ tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó l
 <p><b>👉 Vì vậy mình quyết định kiểm tra file này đang chỉ điều gì:</b></p>
 
 <p><b>Phân tích log chi tiết (CBS.log) để xác định file hệ thống bị lỗi cụ thể</b></p>
-    
-<img src="images/image2.jpg">
+
+<img src="dll-fix/image2.jpg">
 
 <h2>🔍 Phân tích CBS.log</h2>
 
@@ -187,10 +185,10 @@ tuy nhiên đều không khả thi. Việc mình lưu tâm nhiều nhất đó l
 <li><b>Actual</b>: file hiện tại bị lệch hoặc corrupt</li>
 <li><b>Cannot Repair</b>: Windows không thể tự sửa file đó</li>
 </ul>
-    
-<img src="images/image3.png">
-<img src="images/image4.png">
-<img src="images/image5.png">
+
+<img src="dll-fix/image3.png">
+<img src="dll-fix/image4.png">
+<img src="dll-fix/image5.png">
 
 <h2>🔍 Nguyên nhân</h2>
 
@@ -251,8 +249,8 @@ shutdown /r /t 5
 
 <h4>Sau khi chạy lại sfc /scannow, kiểm tra lại CBS.log</h4>
 
-<img src="images/image6.png">
-<img src="images/image7.png">
+<img src="dll-fix/image6.png">
+<img src="dll-fix/image7.png">
 
 <h1>Góc nhìn của mình</h1>
 
@@ -272,19 +270,16 @@ và mục tiêu là khôi phục tạm thời để backup dữ liệu.
 
 <h2>📜 PowerShell Script: Phân tích CBS.log</h2>
 
-<p>
-Script giúp phát hiện DLL lỗi và hiển thị summary.
-</p>
+<p>Script giúp phát hiện DLL lỗi và hiển thị summary.</p>
 
 <div class="code-script">
-
     <div class="code-header">
         <span>PowerShell</span>
         <button onclick="copyCode(this)">Copy</button>
     </div>
 
     <pre><code class="language-powershell">
-$logPath = "C:\Windows\Logs\CBS\CBS.log"
+        $logPath = "C:\Windows\Logs\CBS\CBS.log"
 if (!(Test-Path $logPath)) {
     Write-Host "Log not found!" -ForegroundColor Red
     exit
@@ -358,7 +353,7 @@ else {
 </div>
 
 <br>
-<a href="../projects.html">← Quay lại</a>
+<a href="../blog.html">← Quay lại</a>
 
 <script>
 function copyCode(button) {
