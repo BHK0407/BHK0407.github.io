@@ -61,6 +61,39 @@
             margin-right: 5px;
         }
 
+        .hero {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        /* lớp tối */
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            border-radius: 10px;
+        }
+
+        /* nội dung */
+        .hero-content {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            color: white;
+            z-index: 2;
+        }
+
+        .hero-content a {
+            color: #38bdf8;
+        }
+
         footer {
             margin-top: 40px;
             padding-top: 20px;
@@ -83,26 +116,27 @@
 
 <h1>💻 Blogs</h1>
 
-<!-- Project DLL -->
-<div class="project">
-    <div class="project-title">
-        <a href="blogs/dll-fix/">
-            Blog 1 | 🔍 Xử lý lỗi DLL trên hệ thống Windows
-        </a>
-    </div>
+<div class="project hero">
+    <image src="images/CBS-banner.png" alt="banner">
+    <div class= "hero-content">
+        <div class="project-title">
+            <a href="blogs/dll-fix/">
+                Blog 1 | 🔍 Xử lý lỗi DLL trên hệ thống Windows
+            </a>
+        </div>
 
-    <p>
-        Phân tích và xử lý lỗi liên quan đến file DLL bị corrupt/missing trên hệ thống Windows,
-        dựa trên CBS.log và kỹ thuật forensic.
-    </p>
+        <p>
+            Phân tích và xử lý lỗi liên quan đến file DLL bị corrupt/missing trên hệ thống Windows,
+            dựa trên CBS.log và kỹ thuật forensic.
+        </p>
 
-    <div>
-        <span class="tag">Windows</span>
-        <span class="tag">DLL</span>
-        <span class="tag">DFIR</span>
+        <div>
+            <span class="tag">Windows</span>
+            <span class="tag">DLL</span>
+            <span class="tag">DFIR</span>
+        </div>
     </div>
 </div>
-
     <p>
         🔗 <a href="https://github.com/BHK0407">Source code</a>
     </p>
